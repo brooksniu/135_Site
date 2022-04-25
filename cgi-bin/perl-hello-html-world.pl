@@ -1,1 +1,0 @@
-<html><head><title>Hello Perl CGI World</title></head><body><marquee>Wow!</marquee><h1 align=center>Hello HTML World! - from lecture</h1><hr/><p>Hello World</p><p>This page was generated with the Perl programming langauge</p><p>This program was run at: Mon Apr 25 01:27:36 2022</p><p>Your current IP Address is: 108.216.108.231</p></body></html>
