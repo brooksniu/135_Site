@@ -4,6 +4,7 @@ from datetime import datetime
 import os
 
 now = datetime.now()
+time = now.strftime("%d/%m/%Y %H:%M:%S")
 
 print ("Cache-Control: no-cache")
 print ("Content-type: text/html\n")
@@ -16,7 +17,7 @@ print ("<body>")
 print ("<h1>Brooks here - Hello, Python!</h1>")
 print ("<p>This page was generated with the Python programming langauge</p>")
 
-print ("<p>Current Time: ", now.strftime("%d/%m/%Y %H:%M:%S") , "</p>")
+print ("<p>Current Time: ",  time, "</p>")
 
 # IP Address is an environment variable when using CGI
 address = os.getenv("REMOTE_ADDR")
