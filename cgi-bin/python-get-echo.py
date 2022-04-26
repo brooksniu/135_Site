@@ -13,11 +13,10 @@ print ("<h1 align=center>Get Request Echo</h1>")
 print ("<hr/>")
 
 query_str = os.environ["QUERY_STRING"]
-parsed_str = urllib.parse.parse_qsl(query_str)
-
+parsed_str = urllib.parse.parse_qs(query_str)
 print ("<b>Query String: </b>", query_str, "<br />")
 
-print ("<h4>Parsed String</h4>")
+print ("<b>Parsed String</b></br>")
 print ("<ul>")
 # print out each variable & content in query
 for param in parsed_str:
