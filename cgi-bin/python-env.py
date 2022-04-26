@@ -10,8 +10,9 @@ print ("</head>")
 print ("<body>")
 print ("<h1 align=center>Environment Variables</h1>")
 print ("<hr/>")
+print ("<ul>")
 
 for param in os.environ.keys():
-    print ("<b>", param, "</b> ", os.environ[param], "</br>")
+    print ("<li>", param, " = ", os.environ[param], "</li>")
 
-print ("</body></html>")
+print ("</ul></body></html>")
