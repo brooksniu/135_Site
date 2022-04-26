@@ -1,4 +1,4 @@
-#!/usr/bin/python
+#!/usr/bin/env python3
 
 from datetime import datetime
 import os
@@ -6,7 +6,7 @@ import os
 now = datetime.now()
 
 print ("Cache-Control: no-cache")
-print ("Content-type: text/html")
+print ("Content-type: text/html\n")
 print ("<html>")
 print ("<head>")
 print ("<title>Hello, Perl!</title>")
