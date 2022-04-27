@@ -5,10 +5,10 @@ from http.cookies import SimpleCookie
 name = ""
 SSID = ""
 
-if (os.environ["HTTP_COOKIE"] != None):
+if (os.getenv("HTTP_COOKIE") != None):
     # get current cookies, create a dictionary and store it
     cookie = SimpleCookie()
-    cookie.load(os.environ["HTTP_COOKIE"])
+    cookie.load(os.getenv("HTTP_COOKIE"))
     for key, morsel in cookie.items():
         # if request sent with cookie, save info
         if (key[0:4] == "PYID"):

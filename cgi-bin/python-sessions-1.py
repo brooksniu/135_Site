@@ -10,10 +10,10 @@ name = sys.stdin.read()
 SSID = "".join(random.choices(string.ascii_lowercase, k=6))
 SSID = "PYID" + SSID
 
-if (os.environ["HTTP_COOKIE"] != None):
+if (os.getenv("HTTP_COOKIE") != None):
     # get current cookies, create a dictionary and store it
     cookie = SimpleCookie()
-    cookie.load(os.environ["HTTP_COOKIE"])
+    cookie.load(os.getenv("HTTP_COOKIE"))
     for key, morsel in cookie.items():
         # if request sent with cookie, save info
         if (key[0:4] == "PYID"):
