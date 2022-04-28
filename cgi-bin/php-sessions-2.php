@@ -13,7 +13,7 @@ session_start();
 <h1>PHP Sessions Page 2</h1>
 <?php
 $name = $_SESSION["username"];
-if ($name !== NULL && $name !== "") {
+if ($name !== NULL && strcmp($name, "") !== 0) {
     $_SESSION["username"] = $name;
     print ("<p><b>Name:</b> $name\n");
 }
