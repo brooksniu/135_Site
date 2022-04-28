@@ -34,9 +34,9 @@ print("<h1>Python Sessions Page 2</h1>")
 print("<table>")
 
 if (not(name == "" or name == "destroyed")):
-    print("<tr><td>Cookie:</td><td>%s=%s</td></tr>" % (SSID, name))
+    print("<tr><td>Name:</td><td>%s</td></tr>" % name)
 else :
-    print("<tr><td>Cookie:</td><td>None</td></tr>")
+    print("<tr><td>Name:</td><td>None</td></tr>")
 
 print("</table>")
 # Links for other pages

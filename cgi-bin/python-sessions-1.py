@@ -6,6 +6,9 @@ import string
 import random
 
 name = sys.stdin.read()
+# process the name variable to avoid username heading
+if (name != None or name != "destroyed" or name != ""):
+    name = name[9:]
 # generate random ID for cookie
 SSID = "".join(random.choices(string.ascii_lowercase, k=6))
 SSID = "PYID" + SSID
@@ -22,10 +25,11 @@ if (os.getenv("HTTP_COOKIE") != None):
                 name = morsel.value
 
 
+
 print ("Cache-Control: no-cache")
 
 # check if name is empty
-if (not(name == "" or name == None)):
+if (not(name == None or name == "")):
     print("Content-type: text/html")
     print("Set-Cookie: ", SSID, "=", name, "\n")
 else:
@@ -39,9 +43,9 @@ print("<h1>Python Sessions Page 1</h1>")
 print("<table>")
 
 if (not(name == "" or name == "destroyed")):
-    print("<tr><td>Cookie:</td><td>%s=%s</td></tr>" % (SSID, name))
+    print("<tr><td>Name:</td><td>%s</td></tr>" % name)
 else :
-    print("<tr><td>Cookie:</td><td>None</td></tr>")
+    print("<tr><td>Name:</td><td>None</td></tr>")
 
 print("</table>")
 # Links for other pages
