@@ -40,14 +40,18 @@ function resetTimer() {
     let endIdle = Date.now();
     let idleTime = endIdle - startIdle;
     if (idleTime >= 2000) {
-        console.log("Break ended at: ", endIdle)
-        console.log("Idle time: ", idleTime);
+        // console.log("Break ended at: ", endIdle);
+        // console.log("Idle time: ", idleTime);
+        actData["idle"].push([endIdle, idleTime]);
     }
     startIdle = Date.now();
 }
 
 // session ID 
 const sessionID = '_' + Math.random().toString(36).substring(2, 9) + Date.now()
+
+// post url
+const postDest = "https://brooksniu.com/json/posts";
 
 // static & performance data
 // Javascript allowance is in HTML file <noscript>, which requires another route.
@@ -80,10 +84,12 @@ window.addEventListener("load", async function(event) {
     startTimer();
 
     // when the user entered the page
-    const timeEntered = Date.now();
+    actData["timeEntered"] = Date.now();
+    // const timeEntered = Date.now();
 
     // which page the user is on
-    const pageRef = window.location.href;
+    actData["pageRef"] = window.location.href;    
+    // const pageRef = window.location.href;
 
     // set up static data & send || store
     const staticData = {};
@@ -116,11 +122,11 @@ window.addEventListener("load", async function(event) {
         // if localstorage is not empty
         if (localStorage.length > 0) {
             for (let i = 0; i < localStorage.length; i++) {
-                await postData("https://brooksniu.com/json/posts", localStorage.getItem(localStorage.key(i)));
+                await postData(postDest, localStorage.getItem(localStorage.key(i)));
             }
         }
-        await postData("https://brooksniu.com/json/posts", JSON.stringify(staticData));
-        await postData("https://brooksniu.com/json/posts", JSON.stringify(performanceData));
+        await postData(postDest, JSON.stringify(staticData));
+        await postData(postDest, JSON.stringify(performanceData));
         // clear localstorage if above operations are successful
         localStorage.clear();
     } catch(error) {
@@ -157,16 +163,27 @@ async function postData(url = "", data = {}) {
 
 // mouse movement activity (PageX and PageY, for absolute area coordinates)
 // thanks https://www.delftstack.com/howto/javascript/javascript-mouse-position/ for the idea
+// activity data
+// Shape: every entry is a 2-D array with each action associated with time
+let actData = {mouseX:[], mouseY:[], mouseClick:[], scroll:[], keyDown:[], keyUp:[], idle:[]};
 function mouseMove(event) {
-    console.log("pageX: ", event.pageX, "pageY: ", event.pageY);
+    // get current time only
+    const curTime = new Date(Date.now()).toString().substring(17,24);
+    // console.log(curTime);
+    actData["mouseX"].push([event.pageX, curTime]);
+    actData["mouseY"].push([event.pageY, curTime]);
+    // console.log("pageX: ", event.pageX, "pageY: ", event.pageY);
     resetTimer();
 }
 window.addEventListener("mousemove", mouseMove);
 
 // mouse click activity
 function mouseClick(event) {
+    // get current time only
+    const curTime = new Date(Date.now()).toString().substring(17,24);
     // 0 for left button, 1 for middle, 2 for right, 3 for X1, 4 for X2 (two side buttons)
-    console.log("mouse ", event.button, "clicked.");
+    actData["mouseClick"].push([event.button, curTime]);
+    // console.log("mouse ", event.button, "clicked.");
     resetTimer();
 }
 window.addEventListener("mousedown", mouseClick);
@@ -174,20 +191,29 @@ window.addEventListener("mousedown", mouseClick);
 // scrolling activity
 // get body for the entire html scroll
 function scroll(event) {
-    console.log((parseFloat(window.scrollY) / (document.documentElement.scrollHeight - window.innerHeight)).toFixed(6));
+    // get current time only
+    const curTime = new Date(Date.now()).toString().substring(17,24);
+    actData["scroll"].push([window.scrollY, curTime]);
+    // console.log((parseFloat(window.scrollY) / (document.documentElement.scrollHeight - window.innerHeight)).toFixed(6));
     resetTimer();
 }
 window.addEventListener("scroll", scroll);
 
 // get keyboard activity
 function keyDownListener(event) {
-    console.log("Key Down: ", event.keyCode);
+    // get current time only
+    const curTime = new Date(Date.now()).toString().substring(17,24);
+    actData["keyDown"].push([event.keyCode, curTime]);
+    // console.log("Key Down: ", event.keyCode);
     resetTimer();
 }
 window.addEventListener("keydown", keyDownListener);
 
 function keyUpListener(event) {
-    console.log("Key Up: ", event.keyCode);
+    // get current time only
+    const curTime = new Date(Date.now()).toString().substring(17,24);
+    actData["keyDown"].push([event.keyCode, curTime]);
+    // console.log("Key Up: ", event.keyCode);
     resetTimer();
 }
 window.addEventListener("keyup", keyUpListener);
@@ -195,7 +221,23 @@ window.addEventListener("keyup", keyUpListener);
 // Q: Are we recording phones?
 
 // when user leaves the page
-function leaveTime(event) {
-    console.log("Leave time: ", Date.now());
+// when user leaves the page, do an immediate data update
+async function leaveTime(event) {
+    actData["leaveTime"] = Date.now();
+    await postData(postDest, JSON.stringify(actData));
+    // console.log("Leave time: ", Date.now());
 }
 window.addEventListener("beforeunload", leaveTime);
+
+// update activity data every 10 seconds
+window.setInterval(async function(){
+    // try to send data
+    try {
+        // activity data  
+        // Not saving activity data locally cuz too many
+        // console.log(JSON.stringify(actData));
+        await postData(postDest, JSON.stringify(actData));
+    } catch(error) {
+        console.error(error);
+    }
+}, 10000)
