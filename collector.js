@@ -241,7 +241,7 @@ window.setInterval(async function(){
         // Not saving activity data locally cuz too many
         // we load every 10 seconds, so if we know initial seconds we only need to record seconds for other events
         actData["curTime"] = Date.now();
-        // console.log(JSON.stringify(actData));
+        // console.log(JSON.stringify(actData)); 
         // console.log(actData);
         await postData(postDest, JSON.stringify(actData));
     } catch(error) {
