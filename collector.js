@@ -33,7 +33,7 @@ function startTimer() {
     // setinterval loses time
     // window.setInterval(function() {timeoutMilSec++;}, 1);
     startIdle = Date.now();
-    console.log("time: ", startIdle);
+    // console.log("time: ", startIdle);
 }
 // reset idle timer, log if idle time >= 2sec
 function resetTimer() {
@@ -159,7 +159,10 @@ async function postData(url = "", data = {}) {
     });
 }
 
-// arrays for activity logs
+// get sec/milsec for activity encoding
+function getStamp() {
+    return (new Date(Date.now()).toString().substring(23,24)) + new Date(Date.now()).getMilliseconds();
+}
 
 // mouse movement activity (PageX and PageY, for absolute area coordinates)
 // thanks https://www.delftstack.com/howto/javascript/javascript-mouse-position/ for the idea
@@ -168,7 +171,7 @@ async function postData(url = "", data = {}) {
 let actData = {mouseX:[], mouseY:[], mouseClick:[], scroll:[], keyDown:[], keyUp:[], idle:[]};
 function mouseMove(event) {
     // get current time only
-    const curTime = new Date(Date.now()).toString().substring(17,24);
+    const curTime = getStamp();
     // console.log(curTime);
     actData["mouseX"].push([event.pageX, curTime]);
     actData["mouseY"].push([event.pageY, curTime]);
@@ -180,7 +183,7 @@ window.addEventListener("mousemove", mouseMove);
 // mouse click activity
 function mouseClick(event) {
     // get current time only
-    const curTime = new Date(Date.now()).toString().substring(17,24);
+    const curTime = getStamp();
     // 0 for left button, 1 for middle, 2 for right, 3 for X1, 4 for X2 (two side buttons)
     actData["mouseClick"].push([event.button, curTime]);
     // console.log("mouse ", event.button, "clicked.");
@@ -192,7 +195,7 @@ window.addEventListener("mousedown", mouseClick);
 // get body for the entire html scroll
 function scroll(event) {
     // get current time only
-    const curTime = new Date(Date.now()).toString().substring(17,24);
+    const curTime = getStamp();
     actData["scroll"].push([window.scrollY, curTime]);
     // console.log((parseFloat(window.scrollY) / (document.documentElement.scrollHeight - window.innerHeight)).toFixed(6));
     resetTimer();
@@ -202,7 +205,7 @@ window.addEventListener("scroll", scroll);
 // get keyboard activity
 function keyDownListener(event) {
     // get current time only
-    const curTime = new Date(Date.now()).toString().substring(17,24);
+    const curTime = getStamp();
     actData["keyDown"].push([event.keyCode, curTime]);
     // console.log("Key Down: ", event.keyCode);
     resetTimer();
@@ -211,7 +214,8 @@ window.addEventListener("keydown", keyDownListener);
 
 function keyUpListener(event) {
     // get current time only
-    const curTime = new Date(Date.now()).toString().substring(17,24);
+    const curTime = getStamp();
+    console.log(curTime);
     actData["keyDown"].push([event.keyCode, curTime]);
     // console.log("Key Up: ", event.keyCode);
     resetTimer();
@@ -223,7 +227,7 @@ window.addEventListener("keyup", keyUpListener);
 // when user leaves the page
 // when user leaves the page, do an immediate data update
 async function leaveTime(event) {
-    actData["leaveTime"] = Date.now();
+    actData["curTime"] = Date.now();
     await postData(postDest, JSON.stringify(actData));
     // console.log("Leave time: ", Date.now());
 }
@@ -235,7 +239,10 @@ window.setInterval(async function(){
     try {
         // activity data  
         // Not saving activity data locally cuz too many
+        // we load every 10 seconds, so if we know initial seconds we only need to record seconds for other events
+        actData["curTime"] = Date.now();
         // console.log(JSON.stringify(actData));
+        // console.log(actData);
         await postData(postDest, JSON.stringify(actData));
     } catch(error) {
         console.error(error);
