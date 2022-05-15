@@ -215,7 +215,7 @@ window.addEventListener("keydown", keyDownListener);
 function keyUpListener(event) {
     // get current time only
     const curTime = getStamp();
-    console.log(curTime);
+    // console.log(curTime);
     actData["keyDown"].push([event.keyCode, curTime]);
     // console.log("Key Up: ", event.keyCode);
     resetTimer();
