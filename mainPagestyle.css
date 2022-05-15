@@ -22,3 +22,7 @@
 .list_elem {
     background-color: gainsboro;
 }
+
+#flag {
+    background-position-x: 1%;
+}
