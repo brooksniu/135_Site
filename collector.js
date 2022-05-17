@@ -11,7 +11,7 @@ function allowImage() {
 function allowCss() {
     const bgColor = document.getElementById("flag");
     const flagOffset = window.getComputedStyle(bgColor).backgroundPositionX;
-    if (flagOffset == "1%") {
+    if (flagOffset === "1%") {
         return true;
     }
     else {
@@ -51,7 +51,9 @@ function resetTimer() {
 const sessionID = '_' + Math.random().toString(36).substring(2, 9) + Date.now()
 
 // post url
-const postDest = "https://brooksniu.com/json/posts";
+const staticDest = "https://brooksniu.com/api/static/";
+const performDest = "https://brooksniu.com/api/performance/";
+const activDest = "https://brooksniu.com/api/activity/";
 
 // static & performance data
 // Javascript allowance is in HTML file <noscript>, which requires another route.
@@ -122,11 +124,18 @@ window.addEventListener("load", async function(event) {
         // if localstorage is not empty
         if (localStorage.length > 0) {
             for (let i = 0; i < localStorage.length; i++) {
-                await postData(postDest, localStorage.getItem(localStorage.key(i)));
+                // check static or performance
+                if (localStorage.key(i).charAt(0) === 's') {
+                    await postData(staticDest, localStorage.getItem(localStorage.key(i)));  
+                    console.log("sent");
+                }
+                else {
+                    await postData(performDest, localStorage.getItem(localStorage.key(i)));
+                }
             }
         }
-        await postData(postDest, JSON.stringify(staticData));
-        await postData(postDest, JSON.stringify(performanceData));
+        await postData(staticDest, JSON.stringify(staticData));
+        await postData(performDest, JSON.stringify(performanceData));
         // clear localstorage if above operations are successful
         localStorage.clear();
     } catch(error) {
@@ -149,9 +158,11 @@ async function postData(url = "", data = {}) {
         },
         body: data,
     })
-    .then(response => response.json())
-    .then(data => {
-        return data;
+    .then(response => {
+        if (response.status !== 200) {
+            throw new Error("Data not updated, response != 200");
+        }
+        return response;
     })
     .catch((error) => {
         // console.log("error occured, passing to parent function");
@@ -168,7 +179,7 @@ function getStamp() {
 // thanks https://www.delftstack.com/howto/javascript/javascript-mouse-position/ for the idea
 // activity data
 // Shape: every entry is a 2-D array with each action associated with time
-let actData = {mouseX:[], mouseY:[], mouseClick:[], scroll:[], keyDown:[], keyUp:[], idle:[]};
+let actData = {mouseX:[], mouseY:[], mouseClick:[], scroll:[], keyDown:[], keyUp:[], idle:[], sessionID: sessionID};
 function mouseMove(event) {
     // get current time only
     const curTime = getStamp();
@@ -216,7 +227,7 @@ function keyUpListener(event) {
     // get current time only
     const curTime = getStamp();
     // console.log(curTime);
-    actData["keyDown"].push([event.keyCode, curTime]);
+    actData["keyUp"].push([event.keyCode, curTime]);
     // console.log("Key Up: ", event.keyCode);
     resetTimer();
 }
@@ -228,7 +239,7 @@ window.addEventListener("keyup", keyUpListener);
 // when user leaves the page, do an immediate data update
 async function leaveTime(event) {
     actData["curTime"] = Date.now();
-    await postData(postDest, JSON.stringify(actData));
+    await postData(activDest, JSON.stringify(actData));
     // console.log("Leave time: ", Date.now());
 }
 window.addEventListener("beforeunload", leaveTime);
@@ -243,7 +254,7 @@ window.setInterval(async function(){
         actData["curTime"] = Date.now();
         // console.log(JSON.stringify(actData)); 
         // console.log(actData);
-        await postData(postDest, JSON.stringify(actData));
+        await postData(activDest, JSON.stringify(actData));
     } catch(error) {
         console.error(error);
     }
