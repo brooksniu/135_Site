@@ -12,10 +12,6 @@
         </script>
         <!-- My collector -->
         <script src="./collector.js" type="module"></script>
-        <noscript>
-            <!-- TODO: Finish noscript(direct to collector to send headers) -->
-            <noscript><meta http-equiv="refresh" content="0; url=brooksniu.com/no_script" /></noscript>
-        </noscript>
         <meta charset="UTF-8">
         <title>135_SP22</title>
         <link rel="icon" href="./assets/logo.JPG">
@@ -28,7 +24,10 @@
     <body>
         <img id="flag" src="clear.gif" alt="">
         <div class="header">
-            <h1>CSE135</h1>
+            <h1>CSE135<noscript>
+                <p>Javascript is disabled.</p>
+                <img src="https://brooksniu.com/api/noscript" alt="Javascript is disabled.">
+            </noscript></h1>
             <h3>Spring 2022</h3>
             <div id="team">
                 <h3>Team Han-Solo</h3>
