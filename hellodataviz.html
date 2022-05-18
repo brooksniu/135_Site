@@ -34,8 +34,105 @@
   <script>
     ZC.LICENSE = ["569d52cefae586f634c54f86dc99e6a9", "b55b025e438fa8a98e32482b5f768ff5"]; // window:load event for Javascript to run after HTML
     // because this Javascript is injected into the document head
-    window.addEventListener('load', () => {
+    window.addEventListener('load', async () => {
+        const staticDest = "https://brooksniu.com/api/static/";
+        const performDest = "https://brooksniu.com/api/performance/";
+        const activDest = "https://brooksniu.com/api/activity/";  
+        const noscriptDest = "https://brooksniu.com/api/getnoscript/"      
         // Javascript code to execute after DOM content
+        async function getData(url) {
+            let acquired = false;
+            const response = await fetch(url, {
+                method: "GET",
+                headers: {
+                    "Content-Type" : "application/json",
+                },
+            })
+            .then(response => {
+                acquired = true;
+                return response.json();
+            })
+            .catch((error) => {
+                // console.log("error occured, passing to parent function");
+                throw new Error(error);
+            });
+            if (acquired) {
+                return response;
+            }
+        }
+        const staticData = await getData(staticDest);
+        const performanceData = await getData(performDest);
+        const noscriptData = await getData(noscriptDest);
+
+        //pi chart data start ====================================
+        // dictionary to store load time
+        let piDict = {"Less_than_100ms":0, "between_100_and_200ms": 0, "above_200ms": 0};
+        for (entry of performanceData) {
+            // console.log(resolution in staticData);
+            // check if dictionary has entry
+            if (entry.loadTime < 100) {
+                piDict["Less_than_100ms"] = piDict["Less_than_100ms"] + 1;
+            }
+            else if (entry.loadTime < 200 && entry.loadTime >= 100){
+                piDict["between_100_and_200ms"] = piDict["between_100_and_200ms"] + 1;
+            }
+            else {
+                piDict["above_200ms"] = piDict["above_200ms"] + 1;
+            }
+        }
+        const l100 = [piDict["Less_than_100ms"]];
+        const b100 = [piDict["between_100_and_200ms"]];
+        const a200 = [piDict["above_200ms"]];   
+        // pi chart data end =====================================  
+
+        //bar chart data start ===================================
+        // bar chart data for accessibility check
+        // Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 
+        //              (KHTML, like Gecko) Chrome/101.0.4951.67 Safari/537.36
+        const jsDisabledCount = Object.keys(noscriptData).length;
+        const userAgents = ["Mozilla/5.0", "Windows NT 10.0;","AppleWebKit/537.36",
+                "KHTML, like Gecko", "Chrome/101.0.0.0", "Chrome/101.0.4951.67", "Safari/537.36"]
+        let allEnabled = [0,0,0,0,0,0,0];
+        let someDisabled = [0,0,0,0,0,0,0];
+        for (entry of staticData) {
+            if (entry.cookieEn && entry.javaScriptEn && entry.imageEn && entry.cssEn) {
+                for (let i = 0; i < userAgents.length; i++) {
+                    if (entry.agent.includes(userAgents[i])){
+                        allEnabled[i] = allEnabled[i] + 1;
+                    }
+                }
+            }
+            else {
+                for (let i = 0; i < userAgents.length; i++) {
+                    if (entry.agent.includes(userAgents[i])){
+                        someDisabled[i] = someDisabled[i] + 1;
+                    }
+                }
+            }
+        }
+        // read noscript
+        for (entry of noscriptData) {
+            for (let i = 0; i < userAgents.length; i++) {
+                if (entry["user-agent"].includes(userAgents[i])){
+                    someDisabled[i] = someDisabled[i] + 1;
+                }
+            }
+        }
+        // bar chart data end ====================================
+
+        // line chart data start
+        const recentActivDest = "https://brooksniu.com/api/recentactivity/";
+        const numRecent = 6;
+        const activityData8 = await getData(recentActivDest + numRecent.toString(10));
+        let idleFreq = [];
+        let clickFreq = [];
+        let keyFreq = [];
+        for (entry of activityData8) {
+            idleFreq.push(entry.idle.length);
+            clickFreq.push(entry.mouseClick.length);
+            keyFreq.push(entry.keyDown.length);
+        }
+        // line chart data end ====================================
 
         // full ZingChart schema can be found here:
         // https://www.zingchart.com/docs/api/json-configuration/
@@ -45,8 +142,8 @@
             graphset: [{
                     type: 'bar',
                 title: {
-                    text: 'Data Basics',
-                    fontSize: 24,
+                    text: 'User Accessibility',
+                    fontSize: 18,
                 },
                 legend: {
                     draggable: true,
@@ -54,20 +151,18 @@
                 scaleX: {
                     // set scale label
                     label: {
-                    text: 'Days'
+                    text: 'User Agent Types w/ Version Number'
                     },
                     // convert text on scale indices
-                    labels: ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun']
+                    labels: userAgents
                 },
                 scaleY: {
                     // scale label with unicode character
                     label: {
-                    text: 'Temperature (°F)'
+                    text: '#of Visits'
                     }
                 },
                 plot: {
-                    // animation docs here:
-                    // https://www.zingchart.com/docs/tutorials/design-and-styling/chart-animation/#animation__effect
                     animation: {
                     effect: 'ANIMATION_EXPAND_BOTTOM',
                     method: 'ANIMATION_STRONG_EASE_OUT',
@@ -77,18 +172,25 @@
                 },
                 series: [{
                     // plot 1 values, linear data
-                    values: [23, 20, 27, 29, 25, 17, 15],
-                    text: 'Week 1',
+                    values: allEnabled,
+                    text: 'Cookie, javaScript, Image, CSS All Enabled',
                     },
                     {
                     // plot 2 values, linear data
-                    values: [35, 42, 33, 49, 35, 47, 35],
-                    text: 'Week 2'
+                    values: someDisabled,
+                    text: 'One or More of the 4 Is Disabled'
                     }
                 ]
                 },
                 {
                     "type": "pie",
+                    "title": {
+                    "text": 'Site Load Time',
+                        "fontSize": 24,
+                    },
+                    "legend": {
+                        "draggable": true,
+                    },
                     "plot": {
                         "background-color": "pink",
                         "value-box": {
@@ -96,34 +198,35 @@
                         "font-color": "gray",
                         "font-size": 12,
                         "font-weight": "normal"
+                        },
+                        "animation": {
+                            "effect": 'ANIMATION_EXPAND_BOTTOM',
+                            "method": 'ANIMATION_STRONG_EASE_OUT',
+                            "sequence": 'ANIMATION_BY_NODE',
+                            "speed": 2,
                         }
                     },
                     "series": [{
-                        "values": [30],
-                        "background-color": "pink"
+                        "values": l100,
+                        "background-color": "blue",
+                        "text": "Less than 100ms"
                         },
                         {
-                        "values": [34],
-                        "background-color": "orange"
+                        "values": b100,
+                        "background-color": "orange",
+                        "text": "Between 100 and 200 ms"
                         },
                         {
-                        "values": [15],
-                        "background-color": "green"
-                        },
-                        {
-                        "values": [14],
-                        "background-color": "gray"
-                        },
-                        {
-                        "values": [5],
-                        "background-color": "purple"
+                        "values": a200,
+                        "background-color": "green",
+                        "text": "Above 200 ms"
                         }
                     ]
                 },
                 {
                     type: "line",
                     title: {
-                    text: 'Data Basics',
+                    text: 'User Interactions',
                     fontSize: 24,
                     },
                     legend: {
@@ -132,26 +235,26 @@
                     scaleX: {
                         // set scale label
                         label: {
-                        text: 'Days'
+                        text: 'Most Recent Interactions In a Minute'
                         },
                         // convert text on scale indices
-                        labels: ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat']
+                        labels: ['10s', '20s', '30s', '40s', '50s', '60s']
                     },
                     scaleY: {
                         // scale label with unicode character
                         label: {
-                        text: 'Temperature (°F)'
+                        text: '#of Interactions'
                         }
                     },
                     series: [{
-                        values: [3, 4, 11, 5, 19, 7],
-                        text: "data1"
+                        values: idleFreq,
+                        text: "Idles (>2sec)"
                     }, {
-                        values: [9, 19, 15, 25, 12, 14],
-                        text: "data2"
+                        values: clickFreq,
+                        text: "Clicks"
                     }, {
-                        values: [15, 29, 19, 21, 25, 26],
-                        text: "data3"
+                        values: keyFreq,
+                        text: "Keys Pushed"
                     }]
                 }
             ]
